@@ -1,0 +1,29 @@
+title Single page app diagram creating a note
+
+
+browser->server: HTTP GET https://studies.cs.helsinki.fi/exampleapp/spa
+server-->browser: HTML-code
+browser->server: HTTP GET https://studies.cs.helsinki.fi/exampleapp/main.css
+server-->browser: main.css
+browser->server: HTTP GET https://studies.cs.helsinki.fi/exampleapp/spa.js
+server-->browser: spa.js
+note over browser:
+executes JS code
+end note
+browser->server: HTTP GET https://studies.cs.helsinki.fi/exampleapp/data.json
+server-->browser: [{ content: "i wish", date:"2022-12-31T01:52:17.373Z", ...]
+note left of  browser:
+browser executes the event handler
+that redraws notes, which were received
+end note
+browser->server: HTTP POST https://studies.cs.helsinki.fi/exampleapp/new_note_spa
+note left of  browser:
+on click of submit button:
+browser adds note first to local storage
+then redraws notes including new note
+then sends new note to server (json format paylaod consists of content and date)
+end note
+note right of server:
+Stores note after validation
+end note
+server-->browser: [{"message":"note created"}]

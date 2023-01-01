@@ -1,0 +1,23 @@
+title Creation of a new node
+
+
+browser->server: HTTP POST https://studies.cs.helsinki.fi/exampleapp/new_note
+note over server:
+validates form data and stores the new note
+end note
+server-->browser: HTTP redirect
+browser->server: HTTP GET https://studies.cs.helsinki.fi/exampleapp/notes
+server-->browser: HTML-code
+browser->server: HTTP GET https://studies.cs.helsinki.fi/exampleapp/main.css
+server-->browser: main.css
+browser->server: HTTP GET https://studies.cs.helsinki.fi/exampleapp/main.js
+server-->browser: main.js
+note over browser:
+executes JS code
+end note
+browser->server: HTTP GET https://studies.cs.helsinki.fi/exampleapp/data.json
+server-->browser: [{ content: "i wish", date:"2022-12-31T01:52:17.373Z", ...]
+note left of  browser:
+browser executes the event handler
+that renders notes to display
+end note
