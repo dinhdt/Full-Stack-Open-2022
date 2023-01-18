@@ -1,33 +1,9 @@
 import { useState } from 'react'
+import Filter from './components/Filter'
+import Persons from './components/Persons'
+import PersonForm from './components/PersonForm'
 
 
-function areTheseObjectsEqual(first, second) {
-  const al = Object.getOwnPropertyNames(first);
-  const bl = Object.getOwnPropertyNames(second);
-
-  // Check if the two list of keys are the same
-  // length. If they are not, we know the objects
-  // are not equal.
-  if (al.length !== bl.length) return false;
-
-  // Check that all keys from both objects match
-  // are present on both objects.
-  const hasAllKeys = al.every(value => !!bl.find(v => v === value));
-
-  // If not all the keys match, we know the
-  // objects are not equal.
-  if (!hasAllKeys) return false;
-
-  // We can now check that the value of each
-  // key matches its corresponding key in the
-  // other object.
-  for (const key of al) if (first[key] !== second[key]) return false;
-
-  // If the object hasn't return yet, at this
-  // point we know that the objects are the
-  // same
-  return true;
-}
 
 const App = () => {
   const [persons, setPersons] = useState([
@@ -43,8 +19,8 @@ const App = () => {
   
   const addContact = (event) => {
     event.preventDefault()
-    const newObj = {name : newName, number : newNumber}
-    const found = persons.find(element => areTheseObjectsEqual(newObj, element))
+    const newObj = {name : newName, number : newNumber, id : persons.length + 1}
+    const found = persons.find(element => newObj.name === element.name)
 
     if (found) {
       window.alert(`${newName} is already added to phonebook`);
@@ -52,10 +28,10 @@ const App = () => {
     else {
       setPersons(persons.concat(newObj))
       setNewName('')
+      setNewNumber('')
     }
-
- 
   }
+
   const handleNameChange = (event) => {
     setNewName(event.target.value)
   }
@@ -73,16 +49,22 @@ const App = () => {
   return (
     <div>
       <h2>Phonebook</h2>
-      <div>filter shown with <input value={filter} onChange={handleFilter} /></div>
-      <h2>add a new</h2>
-    <form>
-      <div>name: <input value={newName} onChange={handleNameChange} /></div>
-      <div>number: <input value={newNumber} onChange={handleNameNumber} /></div>
-      <div><button type="submit" onClick={addContact}>add</button></div>
-    </form>
 
-      <h2>Numbers</h2>
-      <div>{namesToShow.map(person => <div key={person.name}>{`${person.name} ${person.number}`}</div>)}</div>
+      <Filter filter_str={filter} handler={handleFilter} />
+
+      <h3>add a new</h3>
+
+      <PersonForm
+        newName={newName}
+        handleNameChange={handleNameChange}
+        newNumber={newNumber}
+        handleNameNumber={handleNameNumber}
+        addContact={addContact}
+      />
+
+      <h3>Numbers</h3>
+
+      <Persons persons={namesToShow}/>
     </div>
     
   )
