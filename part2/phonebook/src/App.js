@@ -54,7 +54,17 @@ const App = () => {
   const handleFilter = (event) => {
     setFilter(event.target.value)
   }
-
+  const handleDelete = (person) => {
+    if (window.confirm(`Delete ${person.name}?`)) {
+      console.log(`Delete button of ${person.name} id ${person.id} clicked`)
+      personService.deleteEntry(person.id)
+      .then(() => {
+        personService.getAll().then(objList => {
+          setPersons(objList)
+        })
+      })
+    }
+  }
   const namesToShow = persons.filter(person => person.name.toLocaleLowerCase().includes(filter.toLocaleLowerCase()))
 
   return (
@@ -75,7 +85,7 @@ const App = () => {
 
       <h3>Numbers</h3>
 
-      <Persons persons={namesToShow}/>
+      <Persons persons={namesToShow} deleteHandler={handleDelete} />
     </div>
     
   )
