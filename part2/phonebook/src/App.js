@@ -3,14 +3,15 @@ import Filter from './components/Filter'
 import Persons from './components/Persons'
 import PersonForm from './components/PersonForm'
 import personService from './services/persons'
-
+import Notification from './components/Notification'
+import './index.css'
 
 const App = () => {
   const [persons, setPersons] = useState([])
   const [newName, setNewName] = useState('')
   const [newNumber, setNewNumber] = useState('')
   const [filter, setFilter] = useState('')
-
+  const [notification, setNotifcation] = useState(null)
   
 
   useEffect(() => {
@@ -34,7 +35,16 @@ const App = () => {
         .then(obj => {
           setPersons(persons.map(p => p.id !== obj.id ? p : obj))
         })
+        .catch(err => {
+          setNotifcation({message : `${newName} has already been removed from server`, isError : true})
 
+          setTimeout(() => {
+            setNotifcation(null)
+          }, 5000)
+
+          setPersons(persons.filter(p => p.id !== found.id))
+
+        })
       }
     }
     else {
@@ -43,6 +53,12 @@ const App = () => {
       .create(newObj)
       .then(returnedObj => {
         setPersons(persons.concat(returnedObj))
+        setNotifcation({message : `Added ${returnedObj.name}`, isError : false})
+
+        setTimeout(() => {
+          setNotifcation(null)
+        }, 2000)
+
       })
     }
     setNewName('')
@@ -73,7 +89,7 @@ const App = () => {
   return (
     <div>
       <h2>Phonebook</h2>
-
+      <Notification messageObj={notification} />
       <Filter filter_str={filter} handler={handleFilter} />
 
       <h3>add a new</h3>
