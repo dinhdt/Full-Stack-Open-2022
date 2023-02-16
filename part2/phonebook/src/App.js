@@ -28,7 +28,14 @@ const App = () => {
     const found = persons.find(element => newObj.name === element.name)
 
     if (found) {
-      window.alert(`${newName} is already added to phonebook`);
+      if (window.confirm(`${newName} is already added to phonebook, replace the old number with a new one?`)) {
+        personService
+        .update(found.id, newObj)
+        .then(obj => {
+          setPersons(persons.map(p => p.id !== obj.id ? p : obj))
+        })
+
+      }
     }
     else {
       
@@ -36,11 +43,10 @@ const App = () => {
       .create(newObj)
       .then(returnedObj => {
         setPersons(persons.concat(returnedObj))
-        setNewName('')
-        setNewNumber('')
       })
-
     }
+    setNewName('')
+    setNewNumber('')
   }
 
   const handleNameChange = (event) => {
@@ -56,12 +62,9 @@ const App = () => {
   }
   const handleDelete = (person) => {
     if (window.confirm(`Delete ${person.name}?`)) {
-      console.log(`Delete button of ${person.name} id ${person.id} clicked`)
       personService.deleteEntry(person.id)
-      .then(() => {
-        personService.getAll().then(objList => {
-          setPersons(objList)
-        })
+      .then(() => {        
+        setPersons(persons.filter(p => p.id !== person.id))
       })
     }
   }
