@@ -19,6 +19,12 @@ const CountryView = (props) => {
       <div>
         <img style={{width:'15%'}} src={props.country.flags.svg} alt={props.country.flags} />
       </div>
+      <h3>Weather in {props.country.capital[0]}</h3>
+      <div> {`temperature ${props.temperature} °C`} </div>
+      <div> 
+          <img style={{width:'15%'}} src={props.url} alt={"current weather"} />
+       </div>
+      <div> {`wind ${props.wind} m/s`} </div>
     </div>
   )
 }
@@ -41,18 +47,18 @@ const Countries = (props) => {
 
 const App = () => {
   const baseUrl = "https://restcountries.com/v3.1/all"
-
   const [countries, setCountries] = useState([])
   const [countrySearch, setCountrySearch] = useState('')
-  const [showCountries, setShowCountries] = useState([])
+  const [showCountries, setShowCountries] = useState(null)
+  const [weatherData, setWeatherData] = useState({})
 
   const countrySearchHandler = (event) => {
     setCountrySearch(event.target.value)
-    setShowCountries([])
+    setShowCountries(null)
   }
 
   const clickShowCountry = (country) => {
-    setShowCountries([country])
+    setShowCountries(country)
   }
 
   useEffect(() => {
@@ -63,26 +69,54 @@ const App = () => {
       })
   }, [])
 
+  useEffect(() => {
+    if (showCountries) {
+      const geoCodingURL = `http://api.openweathermap.org/geo/1.0/direct?q=${showCountries.capital}&appid=${process.env.REACT_APP_API_KEY}`
+      const request = axios.get(geoCodingURL)
+      request
+      .then(geocode => {
+        let weatherDataURL = `https://api.openweathermap.org/data/2.5/weather?lat=${geocode.data[0]["lat"]}&lon=${geocode.data[0]["lon"]}&appid=${process.env.REACT_APP_API_KEY}&units=metric`
+        axios.get(weatherDataURL)
+        .then(
+          weather => {  
+          setWeatherData({img_url : `https://openweathermap.org/img/wn/${weather.data.weather[0].icon}@2x.png`, temperature : weather.data.main.temp, wind : weather.data.wind.speed})
+         })
+        })
+        .catch(err => console.log(err))
+    }
+
+  }, showCountries)
+
   const filteredCountries = countries.filter(country => country.name.common.toLocaleLowerCase().includes(countrySearch.toLocaleLowerCase()))
-  if (filteredCountries.length === 1) {
-    return (
-      <div>
-        <h2>Countries</h2>
-        <CountryFilter filter_str={countrySearch} handler={countrySearchHandler}></CountryFilter>
-        <CountryView country={filteredCountries[0]}/>
-      </div>
-    )
+  
+
+  if(filteredCountries.length === 1 && (!showCountries || showCountries.name.common !==filteredCountries[0].name.common) ) {
+    setShowCountries(filteredCountries[0])
   }
-  else {
-    return (
-      <div>
-        <h2>Countries</h2>
-        <CountryFilter filter_str={countrySearch} handler={countrySearchHandler}></CountryFilter>
-        <Countries countries={filteredCountries} buttonHandler={clickShowCountry}></Countries> 
-        {showCountries.map(cnt => <CountryView country={cnt} />)}           
-      </div>
-    )
-  }
+
+    if (showCountries) {
+      return (
+        <div>
+          <h2>Countries</h2>
+          <CountryFilter filter_str={countrySearch} handler={countrySearchHandler}></CountryFilter>
+          <CountryView key={showCountries.name.common} country={showCountries} url={weatherData.img_url} temperature={weatherData.temperature} wind={weatherData.wind} />           
+        </div>
+      )
+    
+    }
+    else {
+      return (
+        <div>
+          <h2>Countries</h2>
+          <CountryFilter filter_str={countrySearch} handler={countrySearchHandler}></CountryFilter>
+          <Countries countries={filteredCountries} buttonHandler={clickShowCountry}></Countries> 
+        </div>
+      )
+    }
+  
+
+
+
   
 }
 
