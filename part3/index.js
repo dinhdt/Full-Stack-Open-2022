@@ -1,6 +1,7 @@
 const express = require('express')
 //var morgan = require('morgan')
 const cors = require('cors')
+require('dotenv').config()
 
 
 const app = express()
@@ -35,12 +36,17 @@ persons = [
     }
 ]
 
+
+const Person = require('./models/person')
+
 app.get('/info', (request, response) => {
   response.send(`Phonebook has info for ${persons.length} people<br><br>${new Date()}`)
 })
 
 app.get('/api/persons', (request, response) => {
-  response.json(persons)
+    Person.find({}).then(persons => {
+        response.json(persons)
+    })
 })
 
 app.get('/api/persons/:id', (request, response) => {
@@ -63,24 +69,24 @@ app.delete('/api/persons/:id', (request, response) => {
 
 
 app.post('/api/persons', (request, response) => {  
-
-    if(!request.body.name || !request.body.number || persons.find(person => person.name === request.body.name)) {
+    // || persons.find(person => person.name === request.body.name)
+    if(!request.body.name || !request.body.number ) {
         return response.status(400).json({ 
-            error: 'name must be unique' 
+            error: 'no name or number' 
           })
     }
-    const person = {
-        id : Math.floor(Math.random() * 1e9),
+    const person = new Person ({
         name : request.body.name,
         number : request.body.number
-    }
-
-    persons = persons.concat(person)
-    response.json(person)
-
+    })
+    person.save().then(savedEntry => {
+        response.json(savedEntry)
+    })
   })
 
-  const PORT = process.env.PORT || 3001
+  const PORT = process.env.PORT
   app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`)
   })
+
+//   mongodb+srv://lee90:<password>@cluster0.mh0vklm.mongodb.net/?retryWrites=true&w=majority
