@@ -123,6 +123,4 @@ app.put('/api/persons/:id', (request, response) => {
     console.log(`Server running on port ${PORT}`)
   })
 
-//   mongodb+srv://lee90:<password>@cluster0.mh0vklm.mongodb.net/?retryWrites=true&w=majority
-
 app.use(errorHandler)
