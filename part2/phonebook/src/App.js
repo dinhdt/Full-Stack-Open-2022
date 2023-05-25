@@ -36,13 +36,13 @@ const App = () => {
           setPersons(persons.map(p => p.id !== obj.id ? p : obj))
         })
         .catch(err => {
-          setNotifcation({message : `${newName} has already been removed from server`, isError : true})
+          setNotifcation({message: err.response.data.message, isError : true})
 
           setTimeout(() => {
             setNotifcation(null)
           }, 5000)
 
-          setPersons(persons.filter(p => p.id !== found.id))
+          //setPersons(persons.filter(p => p.id !== found.id))
 
         })
       }
@@ -59,6 +59,13 @@ const App = () => {
           setNotifcation(null)
         }, 2000)
 
+      })
+      .catch(error => {
+        setNotifcation({message: error.response.data.message, isError : true})
+
+        setTimeout(() => {
+          setNotifcation(null)
+        }, 5000)
       })
     }
     setNewName('')
