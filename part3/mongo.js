@@ -1,14 +1,17 @@
 const mongoose = require('mongoose')
 
-if (process.argv.length<3) {
-  console.log('give password as argument')
-  process.exit(1)
-}
+// if (process.argv.length<3) {
+//   console.log('give password as argument')
+//   process.exit(1)
+// }
 
-const password = process.argv[2]
+// const password = process.argv[2]
 
-const url =
-  `mongodb+srv://lee90:${password}@cluster0.mh0vklm.mongodb.net/?retryWrites=true&w=majority`
+// const url =
+//   `mongodb+srv://lee90:${password}@cluster0.mh0vklm.mongodb.net/?retryWrites=true&w=majority`
+
+const url = process.env.MONGODB_URI
+
 
 mongoose.set('strictQuery',false)
 mongoose.connect(url)
@@ -18,7 +21,7 @@ const personSchema = new mongoose.Schema({
     number: String,
   })
   
-  const Person = mongoose.model('Person', personSchema)
+const Person = mongoose.model('Person', personSchema)
 
 if(process.argv.length === 3) {
     // display all content
@@ -31,8 +34,6 @@ if(process.argv.length === 3) {
     })
     return
 }
-
-
 
 
 const person = new Person({
