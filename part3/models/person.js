@@ -7,12 +7,12 @@ const url = process.env.MONGODB_URI
 console.log('connecting to', url)
 
 mongoose.connect(url)
-  .then(result => {
-    console.log('connected to MongoDB')
-  })
-  .catch((error) => {
-    console.log('error connecting to MongoDB:', error.message)
-  })
+    .then( () => {
+        console.log('connected to MongoDB')
+    })
+    .catch((error) => {
+        console.log('error connecting to MongoDB:', error.message)
+    })
 
 const personSchema = new mongoose.Schema({
     name: {
@@ -31,7 +31,7 @@ const personSchema = new mongoose.Schema({
         required: [true, 'User phone number required'],
         minLength: [8, 'phone numebr minimum length not reached']
     }
-  })
+})
 
 personSchema.set('toJSON', {
     transform: (document, returnedObject) => {
@@ -41,4 +41,4 @@ personSchema.set('toJSON', {
     }
 })
 
-module.exports = mongoose.model("Person", personSchema)
+module.exports = mongoose.model('Person', personSchema)
