@@ -2,8 +2,23 @@ const mongoose = require('mongoose')
 const supertest = require('supertest')
 const app = require('../app')
 const logger = require('../utils/logger')
-
 const api = supertest(app)
+const Blog = require('../models/blog')
+
+const initialBlogs = [
+    {
+        title: 'anh dean',
+        author: 'anh Dean',
+        url: 'unknown.com',
+        likes: 522,
+    }
+]
+
+beforeEach(async () => {
+    await Blog.deleteMany({})
+    let blogObject = new Blog(initialBlogs[0])
+    await blogObject.save()
+})
 
 test('blogs are returned as json and have a specific length', async () => {
     const response = await api.get('/api/blogs')
@@ -18,6 +33,30 @@ test('blogs posts id field exist', async () => {
     expect(response.body[0].id).toBeDefined()
 })
 
+test('blogs posts are successfully stored', async () => {
+
+    const newPost ={
+        title: 'new',
+        author: 'anh new',
+        url: 'unknown.com',
+        likes: 0
+    }
+
+    await api
+        .post('/api/blogs')
+        .send(newPost)
+        .expect(201)
+        .expect('Content-Type', /application\/json/)
+
+    const response = await api.get('/api/blogs')
+
+    const contents = response.body.map(r => {
+        return { title : r.title, author : r.author, url : r.url, likes : r.likes }
+    })
+
+    expect(response.body).toHaveLength(initialBlogs.length + 1)
+    expect(contents).toContainEqual(newPost)
+})
 
 afterAll(async () => {
     await mongoose.connection.close()
