@@ -58,6 +58,26 @@ test('blogs posts are successfully stored', async () => {
     expect(contents).toContainEqual(newPost)
 })
 
+test('blog post like property missing', async () => {
+
+    const newPost ={
+        title: 'new',
+        author: 'anh new',
+        url: 'unknown.com',
+    }
+
+    await api
+        .post('/api/blogs')
+        .send(newPost)
+        .expect(201)
+        .expect('Content-Type', /application\/json/)
+
+    const response = await api.get('/api/blogs')
+    let filtered = response.body.filter(blog => blog.title === newPost.title)
+    expect(filtered[0].likes).toEqual(0)
+
+})
+
 afterAll(async () => {
     await mongoose.connection.close()
 })
