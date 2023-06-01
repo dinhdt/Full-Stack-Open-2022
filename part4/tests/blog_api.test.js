@@ -100,6 +100,20 @@ test('blog post title / author property missing', async () => {
         .expect(400)
 })
 
+test('delete blog post', async () => {
+    const response = await api.get('/api/blogs')
+    const initialLength = response.body.length
+    const contents = response.body.filter(r => initialBlogs[0].title === r.title && initialBlogs[0].title === r.title )
+    await api
+        .delete(`/api/blogs/${contents[0].id}`)
+        .expect(204)
+
+    const responseAfter = await api.get('/api/blogs')
+    const contentsAfter = responseAfter.body.filter(r => initialBlogs[0].title === r.title && initialBlogs[0].title === r.title )
+    expect(responseAfter.body.length).toEqual(initialLength - 1)
+    expect(contentsAfter).not.toContainEqual(contents)
+})
+
 
 afterAll(async () => {
     await mongoose.connection.close()
