@@ -78,6 +78,29 @@ test('blog post like property missing', async () => {
 
 })
 
+test('blog post title / author property missing', async () => {
+
+    const newNoTitle ={
+        url: 'unknown.com',
+    }
+
+    const newNoUrl={
+        title: 'new',
+        author: 'anh new',
+    }
+
+    await api
+        .post('/api/blogs')
+        .send(newNoTitle)
+        .expect(400)
+
+    await api
+        .post('/api/blogs')
+        .send(newNoUrl)
+        .expect(400)
+})
+
+
 afterAll(async () => {
     await mongoose.connection.close()
 })
