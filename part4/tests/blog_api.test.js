@@ -110,8 +110,26 @@ test('delete blog post', async () => {
 
     const responseAfter = await api.get('/api/blogs')
     const contentsAfter = responseAfter.body.filter(r => initialBlogs[0].title === r.title && initialBlogs[0].title === r.title )
-    expect(responseAfter.body.length).toEqual(initialLength - 1)
+    expect(responseAfter.body.length).toBe(initialLength - 1)
     expect(contentsAfter).not.toContainEqual(contents)
+})
+
+
+test('update blog post', async () => {
+    const responseBefore = await api.get('/api/blogs')
+    // get any entry from db and update fields with random values
+    responseBefore.body[0].title    += 'test'
+    responseBefore.body[0].url      += 'test.co.jp'
+    responseBefore.body[0].author   += '911'
+    responseBefore.body[0].likes    += 1337
+
+    await api
+        .put(`/api/blogs/${responseBefore.body[0].id}`)
+        .send(responseBefore.body[0])
+
+    const responseAfter = await api.get('/api/blogs')
+    const editedBlog = responseAfter.body.filter(r => r.id === responseBefore.body[0].id)
+    expect(editedBlog[0]).toEqual(responseBefore.body[0])
 })
 
 
