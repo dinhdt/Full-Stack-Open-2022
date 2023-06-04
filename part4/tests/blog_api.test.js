@@ -1,7 +1,7 @@
 const mongoose = require('mongoose')
 const supertest = require('supertest')
 const app = require('../app')
-const logger = require('../utils/logger')
+// const logger = require('../utils/logger')
 const api = supertest(app)
 const Blog = require('../models/blog')
 
