@@ -1,22 +1,31 @@
 const blogRouter = require('express').Router()
 const Blog = require('../models/blog')
+const User = require('../models/user')
+const logger = require('../utils/logger')
 
 
 blogRouter.get('/', async (request, response) => {
-    const blogs = await Blog.find({})
+    const blogs = await Blog.find({}).populate('user', { username : 1, name : 1, id : 1})
     response.json(blogs)
 })
 
 blogRouter.post('/', async (request, response) => {
-    const blog = new Blog(request.body)
-    if (!blog.url || !blog.title) {
+    const user = await User.findOne({ username : /.*/ })
+
+
+    if (!request.body.url || !request.body.title) {
         return response.status(400).send({ error: 'title or url missing' })
     }
 
-    if(!blog.likes) {
+    const blog = new Blog(request.body)
+    if(!request.body.likes) {
         blog.likes = 0
     }
+    blog.user = user._id
+
     const result = await blog.save()
+    user.blogs = user.blogs.concat(result._id)
+    await user.save()
     response.status(201).json(result)
 })
 

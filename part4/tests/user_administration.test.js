@@ -44,7 +44,6 @@ describe('test with empty user DB', () => {
 
     test('create invalid user', async () => {
         await User.deleteMany({})
-        const usersBefore = await userTestHelper.usersInDb()
         let wrongUsername = userTestHelper.initialUsers[0]
         let wrongPassword = userTestHelper.initialUsers[1]
 
