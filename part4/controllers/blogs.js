@@ -1,8 +1,9 @@
 const blogRouter = require('express').Router()
 const Blog = require('../models/blog')
-const User = require('../models/user')
-const logger = require('../utils/logger')
-const jwt = require('jsonwebtoken')
+const { userExtractor } = require('../utils/middleware')
+// const User = require('../models/user')
+// const logger = require('../utils/logger')
+// const jwt = require('jsonwebtoken')
 
 // ...
 
@@ -11,15 +12,8 @@ blogRouter.get('/', async (request, response) => {
     response.json(blogs)
 })
 
-blogRouter.post('/', async (request, response) => {
+blogRouter.post('/', userExtractor, async (request, response) => {
     const body = request.body
-    // const user = await User.findOne({ username : /.*/ })
-    const decodedToken = jwt.verify(request.token, process.env.SECRET)
-
-    if (!decodedToken.id) {
-        return response.status(401).json({ error: 'token invalid' })
-    }
-    const user = await User.findById(decodedToken.id)
 
     if (!body.url || !body.title) {
         return response.status(400).send({ error: 'title or url missing' })
@@ -29,23 +23,19 @@ blogRouter.post('/', async (request, response) => {
     if(!body.likes) {
         blog.likes = 0
     }
-    blog.user = user._id
+    blog.user = request.user._id
 
     const result = await blog.save()
-    user.blogs = user.blogs.concat(result._id)
-    await user.save()
+    request.user.blogs = request.user.blogs.concat(result._id)
+    await request.user.save()
     response.status(201).json(result)
 })
 
-blogRouter.delete('/:id', async (request, response) => {
-    const decodedToken = jwt.verify(request.token, process.env.SECRET)
-    if (!decodedToken.id) {
-        return response.status(401).json({ error: 'token invalid' })
-    }
-    const user = await User.findById(decodedToken.id)
+blogRouter.delete('/:id', userExtractor, async (request, response) => {
+
     const blog = await Blog.findById(request.params.id)
 
-    if ( user && blog && blog.user.toString() === user._id.toString() ) {
+    if ( request.user && blog && blog.user.toString() === request.user._id.toString() ) {
         await Blog.findByIdAndRemove(request.params.id)
         response.status(201).end()
     }
