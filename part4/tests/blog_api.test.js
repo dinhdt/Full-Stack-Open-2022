@@ -4,20 +4,35 @@ const app = require('../app')
 // const logger = require('../utils/logger')
 const api = supertest(app)
 const Blog = require('../models/blog')
+const User = require('../models/user')
+// const userTestHelper = require('./user_test_helper')
 
-const initialBlogs = [
-    {
-        title: 'anh dean',
-        author: 'anh Dean',
-        url: 'unknown.com',
-        likes: 522,
-    }
-]
+const blogUser = {
+    username : 'Mr Test',
+    password : 'hello123',
+    name : 'Thomas Test'
+}
 
 beforeEach(async () => {
     await Blog.deleteMany({})
-    let blogObject = new Blog(initialBlogs[0])
-    await blogObject.save()
+    await User.deleteMany({})
+    await api.post('/api/users').send(blogUser)
+
+    const userinfo = await api.post('/api/login').send(blogUser).expect(200)
+
+    const newPost ={
+        title: 'new',
+        author: 'anh new',
+        url: 'unknown.com',
+        likes: 0
+    }
+
+    await api
+        .post('/api/blogs')
+        .set('Authorization', `Bearer ${userinfo.body.token}`)
+        .send(newPost)
+        .expect(201)
+        .expect('Content-Type', /application\/json/)
 })
 
 test('blogs are returned as json and have a specific length', async () => {
@@ -33,10 +48,14 @@ test('blogs posts id field exist', async () => {
     expect(response.body[0].id).toBeDefined()
 })
 
+
 test('blogs posts are successfully stored', async () => {
+    // login as user
+    const userinfo = await api.post('/api/login').send(blogUser).expect(200)
+    const responseBefore = await api.get('/api/blogs')
 
     const newPost ={
-        title: 'new',
+        title: 'new new new',
         author: 'anh new',
         url: 'unknown.com',
         likes: 0
@@ -44,6 +63,14 @@ test('blogs posts are successfully stored', async () => {
 
     await api
         .post('/api/blogs')
+        // .set('Authorization', `Bearer ${userinfo.body.token}`)
+        .send(newPost)
+        .expect(401)
+        .expect('Content-Type', /application\/json/)
+
+    await api
+        .post('/api/blogs')
+        .set('Authorization', `Bearer ${userinfo.body.token}`)
         .send(newPost)
         .expect(201)
         .expect('Content-Type', /application\/json/)
@@ -54,20 +81,36 @@ test('blogs posts are successfully stored', async () => {
         return { title : r.title, author : r.author, url : r.url, likes : r.likes }
     })
 
-    expect(response.body).toHaveLength(initialBlogs.length + 1)
+    expect(response.body).toHaveLength(responseBefore.body.length + 1)
     expect(contents).toContainEqual(newPost)
 })
 
-test('blog post like property missing', async () => {
-
+test('blogs posts fail without token', async () => {
     const newPost ={
         title: 'new',
+        author: 'anh new',
+        url: 'unknown.com',
+        likes: 0
+    }
+
+    await api
+        .post('/api/blogs')
+        .send(newPost)
+        .expect(401)
+})
+
+test('blog post like property missing', async () => {
+    const userinfo = await api.post('/api/login').send(blogUser).expect(200)
+
+    const newPost ={
+        title: 'new nw neeeeeeew',
         author: 'anh new',
         url: 'unknown.com',
     }
 
     await api
         .post('/api/blogs')
+        .set('Authorization', `Bearer ${userinfo.body.token}`)
         .send(newPost)
         .expect(201)
         .expect('Content-Type', /application\/json/)
@@ -79,6 +122,7 @@ test('blog post like property missing', async () => {
 })
 
 test('blog post title / author property missing', async () => {
+    const userinfo = await api.post('/api/login').send(blogUser).expect(200)
 
     const newNoTitle ={
         url: 'unknown.com',
@@ -91,25 +135,51 @@ test('blog post title / author property missing', async () => {
 
     await api
         .post('/api/blogs')
+        .set('Authorization', `Bearer ${userinfo.body.token}`)
         .send(newNoTitle)
         .expect(400)
 
     await api
         .post('/api/blogs')
+        .set('Authorization', `Bearer ${userinfo.body.token}`)
         .send(newNoUrl)
         .expect(400)
 })
 
+
 test('delete blog post', async () => {
+
+
+    const newPost ={
+        title: 'new new',
+        author: 'anh new',
+        url: 'unknown.com',
+    }
+    const userinfo = await api.post('/api/login').send(blogUser).expect(200)
+
+    await api
+        .post('/api/blogs')
+        .set('Authorization', `Bearer ${userinfo.body.token}`)
+        .send(newPost)
+        .expect(201)
+        .expect('Content-Type', /application\/json/)
+
+
     const response = await api.get('/api/blogs')
     const initialLength = response.body.length
-    const contents = response.body.filter(r => initialBlogs[0].title === r.title && initialBlogs[0].title === r.title )
+    const contents = response.body.filter(r => newPost.title === r.title && newPost.title === r.title )
+
     await api
         .delete(`/api/blogs/${contents[0].id}`)
-        .expect(204)
+        .expect(401)
+
+    await api
+        .delete(`/api/blogs/${contents[0].id}`)
+        .set('Authorization', `Bearer ${userinfo.body.token}`)
+        .expect(201)
 
     const responseAfter = await api.get('/api/blogs')
-    const contentsAfter = responseAfter.body.filter(r => initialBlogs[0].title === r.title && initialBlogs[0].title === r.title )
+    const contentsAfter = responseAfter.body.filter(r => newPost.title === r.title && newPost.title === r.title )
     expect(responseAfter.body.length).toBe(initialLength - 1)
     expect(contentsAfter).not.toContainEqual(contents)
 })
