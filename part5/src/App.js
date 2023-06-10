@@ -8,11 +8,15 @@ const App = () => {
   const [username, setUsername] = useState('') 
   const [password, setPassword] = useState('') 
   const [user, setUser] = useState(null)
+  const [title, setTitle] = useState('') 
+  const [author, setAuthor] = useState('') 
+  const [url, setUrl] = useState('')
 
-  useEffect(() => {
-    blogService.getAll().then(blogs =>
-      setBlogs( blogs )
-    )  
+  useEffect( () => {
+    async function fetchBlogs() {
+      setBlogs(await blogService.getAll())
+    }
+    fetchBlogs()
   }, [])
 
   useEffect(() => {
@@ -20,17 +24,16 @@ const App = () => {
     if (loggedUserJSON) {
       const user = JSON.parse(loggedUserJSON)
       setUser(user)
-      //.setToken(user.token)
+      blogService.setToken(user.token)
     }
   }, [])
 
 
   const handleLogin = async (event) => {
     event.preventDefault()
-    
     try {
       const user = await loginService.login({
-        username, password,
+        username, password
       })
       window.localStorage.setItem(
         'loggedBlogappUser', JSON.stringify(user)
@@ -38,14 +41,31 @@ const App = () => {
       setUser(user)
       setUsername('')
       setPassword('')
+      blogService.setToken(user.token)
     } catch (exception) {
-        // setErrorMessage('Wrong credentials')
-        // setTimeout(() => {
-        //   setErrorMessage(null)
-        // }, 5000)
+    //     // setErrorMessage('Wrong credentials')
+    //     // setTimeout(() => {
+    //     //   setErrorMessage(null)
+    //     // }, 5000)
     }
   }
+  const handleBlogCreate = async (event) => {
+      event.preventDefault()
+      try {
+         const newBlog = await blogService.create({
+           author, title, url
+        })      
+        setTitle('')
+        setAuthor('')
+        setUrl('')
+        setBlogs(await blogService.getAll())
+      }
+      catch (exception) {
 
+      }
+
+    }
+  
   if (user === null) {
     return (
       <div>
@@ -82,6 +102,41 @@ const App = () => {
       <div>
         <p>{`${user.name} logged in`}</p> <button onClick={() => {window.localStorage.removeItem('loggedBlogappUser'); setUser(null)}}>logout</button>
       </div>
+
+      <div>
+        <h2>create new</h2> 
+        <form onSubmit={handleBlogCreate}>
+          <div>
+            title
+              <input
+              type="text"
+              value={title}
+              name="Title"
+              onChange={({ target }) => setTitle(target.value)}
+            />
+          </div>
+          <div>
+            author
+              <input
+              type="text"
+              value={author}
+              name="Author"
+              onChange={({ target }) => setAuthor(target.value)}
+            />
+          </div>
+          <div>
+            url
+              <input
+              type="text"
+              value={url}
+              name="Url"
+              onChange={({ target }) => setUrl(target.value)}
+            />
+          </div>
+          <button type="submit">create</button>
+        </form>
+      </div>
+
       <div>
         {blogs.map(blog =>
           <Blog key={blog.id} blog={blog} />
