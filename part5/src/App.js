@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react'
 import Blog from './components/Blog'
 import blogService from './services/blogs'
 import loginService from './services/login'
+import Notification from './components/Notification'
+import './index.css'
 
 const App = () => {
   const [blogs, setBlogs] = useState([])
@@ -11,6 +13,7 @@ const App = () => {
   const [title, setTitle] = useState('') 
   const [author, setAuthor] = useState('') 
   const [url, setUrl] = useState('')
+  const [notification, setNotification] = useState(null)
 
   useEffect( () => {
     async function fetchBlogs() {
@@ -43,10 +46,10 @@ const App = () => {
       setPassword('')
       blogService.setToken(user.token)
     } catch (exception) {
-    //     // setErrorMessage('Wrong credentials')
-    //     // setTimeout(() => {
-    //     //   setErrorMessage(null)
-    //     // }, 5000)
+      setNotification({isError:true, message:'Wrong credentials'})
+        setTimeout(() => {
+          setNotification(null)
+        }, 5000)
     }
   }
   const handleBlogCreate = async (event) => {
@@ -59,6 +62,10 @@ const App = () => {
         setAuthor('')
         setUrl('')
         setBlogs(await blogService.getAll())
+        setNotification({isError:false, message:'Blog added'})
+        setTimeout(() => {
+          setNotification(null)
+        }, 5000)
       }
       catch (exception) {
 
@@ -69,6 +76,7 @@ const App = () => {
   if (user === null) {
     return (
       <div>
+        <Notification messageObj={notification} />
         <form onSubmit={handleLogin}>
           <div>
             username
@@ -97,6 +105,7 @@ const App = () => {
 
   return (
     <div>
+      <Notification messageObj={notification} />
       <h2>blogs</h2>
 
       <div>
